@@ -3,32 +3,66 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>贪吃蛇游戏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>手机版贪吃蛇游戏</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
         }
 
         canvas {
             border: 1px solid #333;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .control-button {
+            width: 50px;
+            height: 50px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
 
 <body>
-    <h1>贪吃蛇游戏</h1>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <h1>手机版贪吃蛇游戏</h1>
+    <canvas id="gameCanvas"></canvas>
+    <div class="controls">
+        <div class="control-button" onclick="changeDirection('left')">&larr;</div>
+        <div class="control-button" onclick="changeDirection('up')">&uarr;</div>
+        <div class="control-button" onclick="changeDirection('down')">&darr;</div>
+        <div class="control-button" onclick="changeDirection('right')">&rarr;</div>
+    </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        // 根据屏幕大小调整画布大小
+        canvas.width = Math.min(window.innerWidth - 20, 400);
+        canvas.height = Math.min(window.innerHeight - 150, 400);
+
         const blockSize = 20;
         let snake = [
-            { x: 10 * blockSize, y: 10 * blockSize }
+            { x: Math.floor(canvas.width / 2 / blockSize) * blockSize, y: Math.floor(canvas.height / 2 / blockSize) * blockSize }
         ];
         let food = {
             x: Math.floor(Math.random() * (canvas.width / blockSize)) * blockSize,
@@ -96,20 +130,44 @@
             }
         }
 
-        function changeDirection(event) {
-            const key = event.key;
-            if (key === 'ArrowRight' && direction !== 'left') {
-                direction = 'right';
-            } else if (key === 'ArrowLeft' && direction !== 'right') {
-                direction = 'left';
-            } else if (key === 'ArrowUp' && direction !== 'down') {
-                direction = 'up';
-            } else if (key === 'ArrowDown' && direction !== 'up') {
-                direction = 'down';
+        function changeDirection(newDirection) {
+            if (
+                (newDirection === 'right' && direction !== 'left') ||
+                (newDirection === 'left' && direction !== 'right') ||
+                (newDirection === 'up' && direction !== 'down') ||
+                (newDirection === 'down' && direction !== 'up')
+            ) {
+                direction = newDirection;
             }
         }
 
-        document.addEventListener('keydown', changeDirection);
+        // 触摸事件处理
+        let touchStartX, touchStartY;
+        canvas.addEventListener('touchstart', function (e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchend', function (e) {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0 && direction !== 'left') {
+                    direction = 'right';
+                } else if (dx < 0 && direction !== 'right') {
+                    direction = 'left';
+                }
+            } else {
+                if (dy > 0 && direction !== 'up') {
+                    direction = 'down';
+                } else if (dy < 0 && direction !== 'down') {
+                    direction = 'up';
+                }
+            }
+        });
 
         function gameLoop() {
             draw();

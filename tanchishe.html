@@ -6,104 +6,142 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>手机版贪吃蛇游戏</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f9;
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        canvas {
-            border: 1px solid #333;
-            max-width: 100%;
-            max-height: 100%;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+
+        #gameCanvas {
+            border: 2px solid #333;
+            border-radius: 5px;
+            max-width: 90%;
+            max-height: 70%;
+            background-color: #fff;
         }
 
         .controls {
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             margin-top: 20px;
         }
 
         .control-button {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             background-color: #007BFF;
             color: white;
             font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 5px;
+            border-radius: 5px;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.2s ease;
+        }
+
+        .control-button:active {
+            background-color: #0056b3;
+        }
+
+        #score-board {
+            font-size: 24px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 
 <body>
-    <h1>手机版贪吃蛇游戏</h1>
+    <div id="score-board">分数: <span id="score">0</span></div>
     <canvas id="gameCanvas"></canvas>
     <div class="controls">
-        <div class="control-button" onclick="changeDirection('left')">&larr;</div>
+        <div></div>
         <div class="control-button" onclick="changeDirection('up')">&uarr;</div>
-        <div class="control-button" onclick="changeDirection('down')">&darr;</div>
+        <div></div>
+        <div class="control-button" onclick="changeDirection('left')">&larr;</div>
+        <div></div>
         <div class="control-button" onclick="changeDirection('right')">&rarr;</div>
+        <div></div>
+        <div class="control-button" onclick="changeDirection('down')">&darr;</div>
+        <div></div>
     </div>
 
     <script>
+        // 游戏配置
+        const gameConfig = {
+            blockSize: 20,
+            speed: 100,
+        };
+
+        // 获取元素
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
 
-        // 根据屏幕大小调整画布大小
-        canvas.width = Math.min(window.innerWidth - 20, 400);
-        canvas.height = Math.min(window.innerHeight - 150, 400);
+        // 初始化画布大小
+        function setCanvasSize() {
+            canvas.width = Math.min(window.innerWidth - 20, 400);
+            canvas.height = Math.min(window.innerHeight - 200, 400);
+        }
+        setCanvasSize();
 
-        const blockSize = 20;
+        // 初始化游戏变量
         let snake = [
-            { x: Math.floor(canvas.width / 2 / blockSize) * blockSize, y: Math.floor(canvas.height / 2 / blockSize) * blockSize }
+            {
+                x: Math.floor(canvas.width / 2 / gameConfig.blockSize) * gameConfig.blockSize,
+                y: Math.floor(canvas.height / 2 / gameConfig.blockSize) * gameConfig.blockSize
+            }
         ];
         let food = {
-            x: Math.floor(Math.random() * (canvas.width / blockSize)) * blockSize,
-            y: Math.floor(Math.random() * (canvas.height / blockSize)) * blockSize
+            x: Math.floor(Math.random() * (canvas.width / gameConfig.blockSize)) * gameConfig.blockSize,
+            y: Math.floor(Math.random() * (canvas.height / gameConfig.blockSize)) * gameConfig.blockSize
         };
         let direction = 'right';
         let score = 0;
+        let gameInterval;
 
+        // 绘制游戏元素
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // 绘制蛇
-            snake.forEach((segment) => {
+            snake.forEach(segment => {
                 ctx.fillStyle = 'green';
-                ctx.fillRect(segment.x, segment.y, blockSize, blockSize);
+                ctx.fillRect(segment.x, segment.y, gameConfig.blockSize, gameConfig.blockSize);
             });
 
             // 绘制食物
             ctx.fillStyle = 'red';
-            ctx.fillRect(food.x, food.y, blockSize, blockSize);
-
-            // 绘制分数
-            ctx.fillStyle = 'black';
-            ctx.font = '20px Arial';
-            ctx.fillText(`分数: ${score}`, 10, 30);
+            ctx.fillRect(food.x, food.y, gameConfig.blockSize, gameConfig.blockSize);
         }
 
+        // 移动蛇
         function move() {
             let head = { ...snake[0] };
             switch (direction) {
                 case 'right':
-                    head.x += blockSize;
+                    head.x += gameConfig.blockSize;
                     break;
                 case 'left':
-                    head.x -= blockSize;
+                    head.x -= gameConfig.blockSize;
                     break;
                 case 'up':
-                    head.y -= blockSize;
+                    head.y -= gameConfig.blockSize;
                     break;
                 case 'down':
-                    head.y += blockSize;
+                    head.y += gameConfig.blockSize;
                     break;
             }
             snake.unshift(head);
@@ -111,9 +149,10 @@
             // 检查是否吃到食物
             if (head.x === food.x && head.y === food.y) {
                 score++;
+                scoreElement.textContent = score;
                 food = {
-                    x: Math.floor(Math.random() * (canvas.width / blockSize)) * blockSize,
-                    y: Math.floor(Math.random() * (canvas.height / blockSize)) * blockSize
+                    x: Math.floor(Math.random() * (canvas.width / gameConfig.blockSize)) * gameConfig.blockSize,
+                    y: Math.floor(Math.random() * (canvas.height / gameConfig.blockSize)) * gameConfig.blockSize
                 };
             } else {
                 snake.pop();
@@ -123,13 +162,15 @@
             if (
                 head.x < 0 || head.x >= canvas.width ||
                 head.y < 0 || head.y >= canvas.height ||
-                snake.slice(1).some((segment) => segment.x === head.x && segment.y === head.y)
+                snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)
             ) {
+                clearInterval(gameInterval);
                 alert(`游戏结束！你的分数是: ${score}`);
                 location.reload();
             }
         }
 
+        // 改变方向
         function changeDirection(newDirection) {
             if (
                 (newDirection === 'right' && direction !== 'left') ||
@@ -169,13 +210,15 @@
             }
         });
 
-        function gameLoop() {
-            draw();
-            move();
-            setTimeout(gameLoop, 100);
+        // 启动游戏
+        function startGame() {
+            gameInterval = setInterval(() => {
+                draw();
+                move();
+            }, gameConfig.speed);
         }
 
-        gameLoop();
+        startGame();
     </script>
 </body>
 

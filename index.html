@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石头剪刀布游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>石头剪刀布游戏</h1>
+    <p>选择你的手势：</p>
+    <button onclick="playGame('石头')">石头</button>
+    <button onclick="playGame('剪刀')">剪刀</button>
+    <button onclick="playGame('布')">布</button>
+    <div id="result"></div>
+
+    <script>
+        function playGame(playerChoice) {
+            const choices = ['石头', '剪刀', '布'];
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+            const resultElement = document.getElementById('result');
+
+            let result;
+            if (playerChoice === computerChoice) {
+                result = `平局！你和电脑都选了 ${playerChoice}。`;
+            } else if (
+                (playerChoice === '石头' && computerChoice === '剪刀') ||
+                (playerChoice === '剪刀' && computerChoice === '布') ||
+                (playerChoice === '布' && computerChoice === '石头')
+            ) {
+                result = `你赢了！你选了 ${playerChoice}，电脑选了 ${computerChoice}。`;
+            } else {
+                result = `你输了！你选了 ${playerChoice}，电脑选了 ${computerChoice}。`;
+            }
+
+            resultElement.textContent = result;
+        }
+    </script>
+</body>
+
+</html>
